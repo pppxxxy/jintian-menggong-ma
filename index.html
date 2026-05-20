@@ -1,203 +1,737 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>今天猛攻吗？</title>
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg1: #10061f;
-      --bg2: #28125a;
-      --card: rgba(255, 255, 255, .12);
-      --card2: rgba(255, 255, 255, .18);
-      --text: #fff;
-      --muted: rgba(255, 255, 255, .72);
-      --accent: #ff4fd8;
-      --accent2: #51f5ff;
-      --good: #6cff9a;
-      --bad: #ff6b6b;
-      --shadow: 0 24px 80px rgba(0,0,0,.35);
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>今天猛攻吗？</title>
+    <style>
+        :root {
+            --bg: #0a0a0f;
+            --card-bg: #14141f;
+            --card-border: #252535;
+            --text: #d0d0d8;
+            --text-dim: #8888a0;
+            --accent: #ff5c1a;
+            --accent-glow: #ff7b3d;
+            --accent-dark: #b8380a;
+            --red: #d93a3a;
+            --gold: #e8a840;
+            --grid-color: rgba(255, 255, 255, 0.02);
+            --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', sans-serif;
+        }
 
-    * { box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      overflow: hidden;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-      color: var(--text);
-      background:
-        radial-gradient(circle at 20% 15%, rgba(255, 79, 216, .35), transparent 34%),
-        radial-gradient(circle at 85% 20%, rgba(81, 245, 255, .32), transparent 30%),
-        radial-gradient(circle at 50% 90%, rgba(108, 255, 154, .18), transparent 35%),
-        linear-gradient(135deg, var(--bg1), var(--bg2));
-    }
+        html,
+        body {
+            width: 100%;
+            min-height: 100vh;
+            background: var(--bg);
+            font-family: var(--font-sans);
+            color: var(--text);
+            -webkit-tap-highlight-color: transparent;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
 
-    .blob {
-      position: fixed;
-      width: 42vmax;
-      height: 42vmax;
-      border-radius: 50%;
-      filter: blur(36px);
-      opacity: .32;
-      animation: float 10s ease-in-out infinite alternate;
-      pointer-events: none;
-    }
-    .blob.one { left: -12vmax; top: -10vmax; background: #ff4fd8; }
-    .blob.two { right: -14vmax; bottom: -12vmax; background: #51f5ff; animation-delay: -4s; }
+        /* 背景网格纹理 */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background:
+                /* 大网格 */
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 48px 48px;
+            /* 微弱的径向渐变模拟暗角 */
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px),
+                radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.6) 100%);
+            background-size: 48px 48px, 48px 48px, 100% 100%;
+        }
 
-    @keyframes float {
-      from { transform: translate3d(0,0,0) scale(1); }
-      to { transform: translate3d(7vw, -4vh, 0) scale(1.12); }
-    }
+        /* 顶部扫描线装饰 */
+        body::after {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.015) 2px,
+                    rgba(0, 0, 0, 0.015) 4px);
+            opacity: 0.5;
+        }
 
-    .card {
-      position: relative;
-      z-index: 1;
-      width: min(92vw, 560px);
-      padding: clamp(28px, 6vw, 54px);
-      border: 1px solid rgba(255, 255, 255, .18);
-      border-radius: 34px;
-      background: linear-gradient(180deg, var(--card2), var(--card));
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(22px);
-      text-align: center;
-    }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 24px 16px 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            justify-content: center;
+        }
 
-    .tag {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: rgba(255,255,255,.12);
-      color: var(--muted);
-      font-size: 14px;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-    }
+        /* ========== 标题区 ========== */
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
 
-    h1 {
-      margin: 22px 0 10px;
-      font-size: clamp(42px, 10vw, 76px);
-      line-height: 1;
-      letter-spacing: -0.08em;
-      text-shadow: 0 10px 30px rgba(0,0,0,.25);
-    }
+        .header .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: var(--accent);
+            border: 1px solid var(--accent-dark);
+            padding: 4px 14px;
+            border-radius: 2px;
+            margin-bottom: 12px;
+            background: rgba(255, 92, 26, 0.06);
+            font-family: var(--font-mono);
+        }
 
-    .question {
-      margin: 0 0 28px;
-      color: var(--muted);
-      font-size: clamp(18px, 4vw, 24px);
-    }
+        .header h1 {
+            font-size: clamp(28px, 7vw, 42px);
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #ffffff;
+            text-shadow: 0 0 40px rgba(255, 92, 26, 0.5), 0 0 80px rgba(255, 92, 26, 0.2);
+            margin: 0;
+            line-height: 1.2;
+        }
 
-    .answer {
-      min-height: 96px;
-      display: grid;
-      place-items: center;
-      margin: 26px 0;
-      padding: 20px;
-      border-radius: 26px;
-      background: rgba(0,0,0,.18);
-      border: 1px solid rgba(255,255,255,.14);
-      font-size: clamp(36px, 11vw, 72px);
-      font-weight: 900;
-      letter-spacing: .03em;
-      transition: transform .2s ease, color .2s ease;
-    }
+        .header h1 .emoji {
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+            font-size: 0.85em;
+        }
 
-    .answer.yes { color: var(--good); transform: scale(1.03) rotate(-1deg); }
-    .answer.no { color: var(--bad); transform: scale(1.03) rotate(1deg); }
-    .answer.wait { color: #fff; }
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
 
-    button {
-      appearance: none;
-      border: 0;
-      cursor: pointer;
-      width: 100%;
-      padding: 18px 22px;
-      border-radius: 20px;
-      color: #18051f;
-      font-size: 19px;
-      font-weight: 900;
-      letter-spacing: .04em;
-      background: linear-gradient(135deg, var(--accent), var(--accent2));
-      box-shadow: 0 16px 40px rgba(81,245,255,.18), 0 12px 35px rgba(255,79,216,.2);
-      transition: transform .16s ease, filter .16s ease;
-    }
-    button:hover { transform: translateY(-2px); filter: brightness(1.06); }
-    button:active { transform: translateY(1px) scale(.99); }
+        .header .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            margin-top: 6px;
+            font-family: var(--font-mono);
+        }
 
-    .note {
-      margin: 18px 0 0;
-      color: rgba(255,255,255,.55);
-      font-size: 13px;
-    }
+        /* ========== 槽位区域 ========== */
+        .slots-container {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 680px;
+            margin-bottom: 28px;
+        }
 
-    .shake { animation: shake .42s cubic-bezier(.36,.07,.19,.97) both; }
-    @keyframes shake {
-      10%, 90% { transform: translate3d(-1px,0,0); }
-      20%, 80% { transform: translate3d(2px,0,0); }
-      30%, 50%, 70% { transform: translate3d(-4px,0,0); }
-      40%, 60% { transform: translate3d(4px,0,0); }
-    }
-  </style>
+        @media (max-width: 600px) {
+            .slots-container {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 8px;
+            }
+            /* 最后两个槽位居中 */
+            .slot:nth-child(4) {
+                grid-column: 1 / 2;
+                justify-self: end;
+            }
+            .slot:nth-child(5) {
+                grid-column: 3 / 4;
+                justify-self: start;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .slots-container {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            .slot:nth-child(5) {
+                grid-column: 1 / -1;
+                justify-self: center;
+                max-width: 140px;
+            }
+            .slot:nth-child(4) {
+                grid-column: auto;
+                justify-self: auto;
+            }
+        }
+
+        /* ========== 单个槽位卡片 ========== */
+        .slot {
+            background: var(--card-bg);
+            border: 1.5px solid var(--card-border);
+            border-radius: 8px;
+            padding: 14px 10px 12px;
+            text-align: center;
+            transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+            position: relative;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* 卡片顶部彩色条 */
+        .slot::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60%;
+            height: 2px;
+            background: var(--card-border);
+            border-radius: 0 0 4px 4px;
+            transition: background 0.25s ease, width 0.25s ease;
+        }
+
+        /* 高亮状态 */
+        .slot.highlight {
+            border-color: var(--accent-glow);
+            box-shadow: 0 0 20px rgba(255, 92, 26, 0.45), 0 0 50px rgba(255, 92, 26, 0.15), inset 0 0 20px rgba(255, 92, 26, 0.04);
+            transform: translateY(-2px);
+        }
+        .slot.highlight::before {
+            background: var(--accent-glow);
+            width: 80%;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .slot .slot-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        .slot.highlight .slot-icon {
+            transform: scale(1.2);
+        }
+
+        .slot .slot-label {
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            font-family: var(--font-mono);
+            transition: color 0.25s ease;
+        }
+        .slot.highlight .slot-label {
+            color: var(--accent-glow);
+        }
+
+        .slot .slot-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #e8e8f0;
+            min-height: 20px;
+            line-height: 1.4;
+            word-break: break-all;
+            transition: color 0.15s ease;
+            letter-spacing: 0.5px;
+        }
+        .slot.highlight .slot-value {
+            color: #ffffff;
+        }
+
+        /* 弹跳动画 */
+        .slot .slot-value.bounce {
+            animation: bounceIn 0.45s cubic-bezier(0.22, 0.61, 0.36, 1);
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(1);
+            }
+            25% {
+                transform: scale(1.35);
+            }
+            45% {
+                transform: scale(0.88);
+            }
+            65% {
+                transform: scale(1.08);
+            }
+            80% {
+                transform: scale(0.96);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* 滚动中的微振动 */
+        .slot.rolling .slot-value {
+            animation: microShake 0.08s infinite alternate;
+        }
+
+        @keyframes microShake {
+            0% {
+                transform: translateY(0);
+            }
+            100% {
+                transform: translateY(-2px);
+            }
+        }
+
+        /* ========== 按钮区 ========== */
+        .btn-wrapper {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        /* 按钮光晕 */
+        .btn-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(255, 92, 26, 0.25) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+            animation: pulseGlow 2.2s ease-in-out infinite;
+            transition: opacity 0.3s ease;
+        }
+        .btn-wrapper.idle::before {
+            opacity: 1;
+        }
+        .btn-wrapper.busy::before {
+            opacity: 0.3;
+            animation: none;
+        }
+
+        @keyframes pulseGlow {
+            0%,
+            100% {
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 0.7;
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.5);
+                opacity: 1;
+            }
+        }
+
+        .btn-strike {
+            position: relative;
+            z-index: 1;
+            display: inline-block;
+            font-size: 20px;
+            font-weight: 900;
+            letter-spacing: 3px;
+            padding: 16px 48px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            color: #ffffff;
+            background: linear-gradient(135deg, #e0450d 0%, #c7350a 40%, #a02505 100%);
+            box-shadow: 0 6px 28px rgba(200, 50, 10, 0.5), 0 0 0 2px rgba(255, 100, 30, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+            font-family: var(--font-sans);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            min-width: 200px;
+        }
+
+        .btn-strike:hover:not(:disabled) {
+            background: linear-gradient(135deg, #f05018 0%, #d9400f 40%, #b03008 100%);
+            box-shadow: 0 8px 36px rgba(220, 60, 15, 0.6), 0 0 0 3px rgba(255, 110, 40, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .btn-strike:active:not(:disabled) {
+            transform: translateY(1px) scale(0.97);
+            box-shadow: 0 3px 14px rgba(180, 40, 8, 0.5), 0 0 0 2px rgba(255, 90, 25, 0.35);
+            transition: all 0.08s ease;
+        }
+
+        .btn-strike:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+            filter: grayscale(25%);
+            box-shadow: 0 3px 12px rgba(150, 40, 10, 0.3), 0 0 0 1px rgba(255, 80, 20, 0.15);
+            transform: scale(0.96);
+            transition: all 0.35s ease;
+        }
+
+        /* ========== Footer ========== */
+        .footer {
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+            line-height: 1.8;
+            font-family: var(--font-mono);
+            max-width: 500px;
+        }
+        .footer .divider {
+            display: block;
+            width: 40px;
+            height: 1px;
+            background: var(--card-border);
+            margin: 0 auto 12px;
+        }
+        .footer .tagline {
+            color: #666;
+            font-style: italic;
+        }
+        .footer .highlight-text {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* ========== 粒子爆炸（按钮点击时） ========== */
+        .particle {
+            position: fixed;
+            pointer-events: none;
+            z-index: 10;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--accent-glow);
+            animation: particleFly 0.7s ease-out forwards;
+        }
+
+        @keyframes particleFly {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--dx), var(--dy)) scale(0);
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="blob one"></div>
-  <div class="blob two"></div>
+    <div class="container">
+        <!-- 标题区 -->
+        <header class="header">
+            <div class="badge">⚡ DELTA STRIKE</div>
+            <h1>
+                <span class="emoji">🎯</span> 今天猛攻吗？
+            </h1>
+            <p class="subtitle">▸ 随机配置生成器 ◂</p>
+        </header>
 
-  <main class="card" id="card">
-    <div class="tag">🔥 今日状态检测器</div>
-    <h1>今天猛攻吗？</h1>
-    <p class="question">点一下，让宇宙替你做决定。</p>
-    <section class="answer wait" id="answer">？</section>
-    <button id="btn" type="button">开始判定</button>
-    <p class="note">娱乐用途：答案仅供开心，真正的猛攻靠你自己。</p>
-  </main>
+        <!-- 5个槽位 -->
+        <div class="slots-container" id="slotsContainer">
+            <div class="slot" data-index="0">
+                <span class="slot-icon">🎯</span>
+                <div class="slot-label">干员</div>
+                <div class="slot-value">--</div>
+            </div>
+            <div class="slot" data-index="1">
+                <span class="slot-icon">⛑️</span>
+                <div class="slot-label">头盔</div>
+                <div class="slot-value">--</div>
+            </div>
+            <div class="slot" data-index="2">
+                <span class="slot-icon">🛡️</span>
+                <div class="slot-label">护甲</div>
+                <div class="slot-value">--</div>
+            </div>
+            <div class="slot" data-index="3">
+                <span class="slot-icon">🗺️</span>
+                <div class="slot-label">地图</div>
+                <div class="slot-value">--</div>
+            </div>
+            <div class="slot" data-index="4">
+                <span class="slot-icon">⚔️</span>
+                <div class="slot-label">玩法</div>
+                <div class="slot-value">--</div>
+            </div>
+        </div>
 
-  <script>
-    const answer = document.getElementById('answer');
-    const btn = document.getElementById('btn');
-    const card = document.getElementById('card');
+        <!-- 按钮 -->
+        <div class="btn-wrapper idle" id="btnWrapper">
+            <button class="btn-strike" id="btnStrike" title="开始猛攻！">
+                ⚡ 猛 攻 ！
+            </button>
+        </div>
 
-    const results = [
-      { text: '猛攻！', cls: 'yes', tip: '冲就完事了' },
-      { text: '先苟住', cls: 'no', tip: '稳一点也是战略' },
-      { text: '小猛一下', cls: 'yes', tip: '循序渐进也很强' },
-      { text: '不猛不行', cls: 'yes', tip: '今天状态爆棚' },
-      { text: '明天再说', cls: 'no', tip: '休息是为了更猛' }
-    ];
+        <!-- 梗味 Footer -->
+        <footer class="footer">
+            <span class="divider"></span>
+            <p>💀 跑刀鼠鼠协会荣誉出品</p>
+            <p class="tagline">"全装猛攻，不死不休 | 鼠鼠跑刀，富贵在天"</p>
+            <p style="margin-top:4px;">
+                ⚠️ 本结果由<span class="highlight-text">系统随机生成</span>，如有雷同纯属巧合
+            </p>
+        </footer>
+    </div>
 
-    function pick() {
-      btn.disabled = true;
-      btn.textContent = '判定中...';
-      answer.className = 'answer wait';
-      answer.textContent = '...';
-      card.classList.remove('shake');
-      void card.offsetWidth;
-      card.classList.add('shake');
+    <script>
+        (function() {
+            // ============ 选项池 ============
+            const pools = [
+                // 0: 干员
+                [
+                    '哈基蜂', '女医', '圆头帽蝶', '夺舍的狼', '威虫',
+                    '进攻风险最高的干员', '幽默静步男', '我的箭下全是秘密',
+                    '沟造的小麦', '老登', '新干员', '堵桥来', '盾狗', '老黑',
+                    'AAA1v1专业户'
+                ],
+                // 1: 头盔
+                ['一级头', '二级头', '三级头', '四级头', '五级头', '六级头'],
+                // 2: 护甲
+                ['一级甲', '二级甲', '三级甲', '四级甲', '五级甲', '六级甲'],
+                // 3: 地图
+                [
+                    '想玩哪张玩哪张', '平时打的最多的图', '平时打的最少的图',
+                    '战备最高的地图', '战备最低的地图'
+                ],
+                // 4: 玩法
+                [
+                    '全装猛攻', '跑刀鼠鼠', '玻璃大炮', '修脚夺舍',
+                    '吃剩饭', '邪恶狙仔', '堵桥来'
+                ]
+            ];
 
-      let ticks = 0;
-      const timer = setInterval(() => {
-        answer.textContent = Math.random() > .5 ? '猛？' : '稳？';
-        ticks++;
-        if (ticks >= 8) {
-          clearInterval(timer);
-          const r = results[Math.floor(Math.random() * results.length)];
-          answer.textContent = r.text;
-          answer.className = 'answer ' + r.cls;
-          btn.textContent = r.tip + '，再判一次';
-          btn.disabled = false;
-        }
-      }, 90);
-    }
+            // 停止延迟（秒）
+            const stopDelays = [0.8, 1.0, 1.2, 1.4, 1.6];
+            // 切换间隔（毫秒）
+            const spinInterval = 80;
 
-    btn.addEventListener('click', pick);
-  </script>
+            // ============ DOM 元素 ============
+            const btnStrike = document.getElementById('btnStrike');
+            const btnWrapper = document.getElementById('btnWrapper');
+            const slotsContainer = document.getElementById('slotsContainer');
+            const slotElements = slotsContainer.querySelectorAll('.slot');
+            const slotValueElements = Array.from(slotElements).map(el => el.querySelector('.slot-value'));
+
+            // ============ 状态管理 ============
+            let isRolling = false;
+            let spinTimers = []; // 每个槽位的切换定时器
+            let stopTimers = []; // 每个槽位的停止定时器
+            let stoppedFlags = [false, false, false, false, false];
+            let finalValues = [null, null, null, null, null]; // 预选的最终值
+
+            // ============ 获取随机选项 ============
+            function randomPick(poolIndex) {
+                const pool = pools[poolIndex];
+                return pool[Math.floor(Math.random() * pool.length)];
+            }
+
+            // ============ 粒子爆炸效果 ============
+            function spawnParticles(x, y) {
+                const count = 16;
+                for (let i = 0; i < count; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    const angle = (Math.PI * 2 * i) / count;
+                    const distance = 30 + Math.random() * 50;
+                    const dx = Math.cos(angle) * distance;
+                    const dy = Math.sin(angle) * distance;
+                    particle.style.cssText = `
+                        left: ${x}px;
+                        top: ${y}px;
+                        --dx: ${dx}px;
+                        --dy: ${dy}px;
+                        width: ${3 + Math.random() * 4}px;
+                        height: ${3 + Math.random() * 4}px;
+                        background: ${Math.random() > 0.5 ? 'var(--accent-glow)' : 'var(--gold)'};
+                    `;
+                    document.body.appendChild(particle);
+                    // 动画结束后移除
+                    particle.addEventListener('animationend', () => {
+                        particle.remove();
+                    });
+                }
+            }
+
+            // ============ 停止单个槽位 ============
+            function stopSlot(index) {
+                if (stoppedFlags[index]) return; // 已经停止过了
+
+                // 清除该槽位的切换定时器
+                if (spinTimers[index]) {
+                    clearInterval(spinTimers[index]);
+                    spinTimers[index] = null;
+                }
+
+                // 设置最终值（如果还没预选则随机选）
+                if (!finalValues[index]) {
+                    finalValues[index] = randomPick(index);
+                }
+                slotValueElements[index].textContent = finalValues[index];
+
+                // 移除滚动状态
+                slotElements[index].classList.remove('rolling');
+                // 移除微振动动画
+                slotValueElements[index].style.animation = '';
+
+                // 触发弹跳动画
+                slotValueElements[index].classList.remove('bounce');
+                void slotValueElements[index].offsetWidth; // 强制回流
+                slotValueElements[index].classList.add('bounce');
+
+                // 高亮卡片
+                slotElements[index].classList.add('highlight');
+
+                // 标记已停止
+                stoppedFlags[index] = true;
+
+                // 300ms 后移除高亮
+                setTimeout(() => {
+                    slotElements[index].classList.remove('highlight');
+                }, 350);
+
+                // 检查是否全部停止
+                checkAllStopped();
+            }
+
+            // ============ 检查是否全部停止 ============
+            function checkAllStopped() {
+                if (stoppedFlags.every(f => f === true)) {
+                    // 全部停止，恢复按钮
+                    const lastStopTime = Math.max(...stopDelays) * 1000;
+                    const remainingAnimation = 400; // 等弹跳动画结束
+                    const totalWait = lastStopTime + remainingAnimation - (performance.now() - rollStartTime);
+                    const delay = Math.max(0, totalWait);
+
+                    setTimeout(() => {
+                        isRolling = false;
+                        btnStrike.disabled = false;
+                        btnWrapper.classList.remove('busy');
+                        btnWrapper.classList.add('idle');
+                        btnStrike.textContent = '⚡ 再 来 一 把 ！';
+                        // 清理
+                        spinTimers = [];
+                        stopTimers = [];
+                        stoppedFlags = [false, false, false, false, false];
+                        finalValues = [null, null, null, null, null];
+                    }, delay);
+                }
+            }
+
+            let rollStartTime = 0;
+
+            // ============ 开始滚动 ============
+            function startRoll() {
+                if (isRolling) return;
+                isRolling = true;
+                rollStartTime = performance.now();
+
+                // 清理旧状态
+                spinTimers.forEach(t => clearInterval(t));
+                stopTimers.forEach(t => clearTimeout(t));
+                spinTimers = [];
+                stopTimers = [];
+                stoppedFlags = [false, false, false, false, false];
+                finalValues = [null, null, null, null, null];
+
+                // 预选所有最终值
+                for (let i = 0; i < 5; i++) {
+                    finalValues[i] = randomPick(i);
+                }
+
+                // 禁用按钮
+                btnStrike.disabled = true;
+                btnStrike.textContent = '⏳ 滚 动 中...';
+                btnWrapper.classList.remove('idle');
+                btnWrapper.classList.add('busy');
+
+                // 启动所有槽位的快速切换
+                for (let i = 0; i < 5; i++) {
+                    // 移除弹跳动画残留
+                    slotValueElements[i].classList.remove('bounce');
+                    slotValueElements[i].style.animation = '';
+                    slotElements[i].classList.remove('highlight');
+
+                    // 添加滚动状态
+                    slotElements[i].classList.add('rolling');
+
+                    // 启动切换定时器
+                    spinTimers[i] = setInterval(() => {
+                        if (!stoppedFlags[i]) {
+                            slotValueElements[i].textContent = randomPick(i);
+                        }
+                    }, spinInterval);
+
+                    // 设置停止定时器
+                    const delayMs = stopDelays[i] * 1000;
+                    stopTimers[i] = setTimeout(() => {
+                        stopSlot(i);
+                    }, delayMs);
+                }
+            }
+
+            // ============ 按钮点击事件 ============
+            btnStrike.addEventListener('click', function(e) {
+                if (isRolling) return;
+
+                // 粒子爆炸
+                const rect = btnStrike.getBoundingClientRect();
+                const cx = rect.left + rect.width / 2;
+                const cy = rect.top + rect.height / 2;
+                spawnParticles(cx, cy);
+
+                // 开始滚动
+                startRoll();
+            });
+
+            // ============ 键盘支持（空格键触发） ============
+            document.addEventListener('keydown', function(e) {
+                if (e.code === 'Space' && !isRolling) {
+                    e.preventDefault();
+                    const rect = btnStrike.getBoundingClientRect();
+                    const cx = rect.left + rect.width / 2;
+                    const cy = rect.top + rect.height / 2;
+                    spawnParticles(cx, cy);
+                    startRoll();
+                }
+            });
+
+            // ============ 初始状态 ============
+            btnWrapper.classList.add('idle');
+            console.log('🎯 今天猛攻吗？ — 已就绪');
+            console.log('   点击按钮或按空格键开始！');
+            console.log('   干员池:', pools[0].length, '个 | 头盔池:', pools[1].length, '个 | 护甲池:', pools[2]
+                .length, '个');
+            console.log('   地图池:', pools[3].length, '个 | 玩法池:', pools[4].length, '个');
+            console.log('   💀 跑刀鼠鼠协会荣誉出品');
+        })();
+    </script>
 </body>
 </html>
